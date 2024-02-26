@@ -4,7 +4,7 @@ import pandas as pd
 import pickle
 
 # Function to load the model
-@st.cache
+@st.cache_data
 def load_model(model_path):
     with open(model_path, 'rb') as file:
         model = pickle.load(file)
