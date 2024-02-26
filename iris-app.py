@@ -1,43 +1,57 @@
+# Import necessary libraries
 import streamlit as st
-import numpy as np
 import pandas as pd
-import pickle
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 
-# Function to load the model
+# Load the Iris dataset
 @st.cache_data
-def load_model(model_path):
-    with open(model_path, 'rb') as file:
-        model = pickle.load(file)
-    return model
+def load_data():
+    return pd.read_csv("iris.csv")
 
-# Function to make predictions
-def predict(model, features):
-    features = np.array(features).reshape(1, -1)
-    prediction = model.predict(features)
-    return prediction  # Return the prediction directly without indexing
+# Sidebar - Parameter settings
+st.sidebar.header('Set Parameters')
+split_size = st.sidebar.slider('Data split ratio (% for Training Set)', 10, 90, 80, 5)
 
-# Streamlit UI
-def main():
-    st.title('Iris Flower Prediction App')
-    
-    # Load pre-trained model
-    model_path = 'iris_model.pkl'  # Change this path to the location of your Pickle file
-    model = load_model(model_path)
-    
-    # Sidebar with user input fields
-    st.sidebar.header('User Input Features')
-    sepal_length = st.sidebar.slider('Sepal Length', 4.0, 8.0, 5.0)
-    sepal_width = st.sidebar.slider('Sepal Width', 2.0, 4.5, 3.0)
-    petal_length = st.sidebar.slider('Petal Length', 1.0, 7.0, 4.0)
-    petal_width = st.sidebar.slider('Petal Width', 0.1, 2.5, 1.0)
-    
-    # Make prediction
-    input_features = [sepal_length, sepal_width, petal_length, petal_width]
-    prediction = predict(model, input_features)
-    
-    # Display prediction
-    species_mapping = {0: 'setosa', 1: 'versicolor', 2: 'virginica'}
-    st.write('Prediction:', species_mapping[prediction[0]])
+# Main content
+st.title('Iris Flower Species Prediction')
+st.write('This app predicts the Iris flower species based on input parameters.')
 
-if __name__ == '__main__':
-    main()
+# Load data
+df = load_data()
+
+# Sidebar - Data Exploration
+st.sidebar.subheader('Data Exploration')
+st.sidebar.write('Number of rows:', df.shape[0])
+st.sidebar.write('Number of columns:', df.shape[1])
+st.sidebar.dataframe(df.head())
+
+# Sidebar - Model Building
+st.sidebar.subheader('Model Building')
+
+# Train/test split
+train_size = split_size / 100
+X = df.drop('species', axis=1)
+y = df['species']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_size, random_state=42)
+
+# Model training
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# Model evaluation
+st.subheader('Model Test Accuracy Score')
+st.write(accuracy_score(y_test, model.predict(X_test)))
+
+# User input for prediction
+st.sidebar.subheader('Predict')
+input_data = {}
+for feature in X.columns:
+    value = st.sidebar.slider(f'Input for {feature}', float(df[feature].min()), float(df[feature].max()), float(df[feature].mean()))
+    input_data[feature] = value
+
+# Prediction
+prediction = model.predict(pd.DataFrame(input_data, index=[0]))
+st.subheader('Prediction')
+st.write(prediction[0])
