@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 # Load the Iris dataset
 @st.cache
 def load_data():
-    return pd.read_csv("iris.csv")
+    return pd.read_csv("https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv")
 
 # Sidebar - Parameter settings
 st.sidebar.header('Set Parameters')
