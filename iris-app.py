@@ -1,57 +1,33 @@
-# Import necessary libraries
 import streamlit as st
+import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
 
-# Load the Iris dataset
-@st.cache_data
-def load_data():
-    return pd.read_csv("iris.csv")
+# Load pre-trained model
+@st.cache
+def load_model():
+    return RandomForestClassifier()
 
-# Sidebar - Parameter settings
-st.sidebar.header('Set Parameters')
-split_size = st.sidebar.slider('Data split ratio (% for Training Set)', 10, 90, 80, 5)
+model = load_model()
 
-# Main content
-st.title('Iris Flower Species Prediction')
-st.write('This app predicts the Iris flower species based on input parameters.')
+# Define prediction function
+def predict(sepal_length, sepal_width, petal_length, petal_width):
+    features = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
+    prediction = model.predict(features)
+    return prediction
 
-# Load data
-df = load_data()
+# Streamlit UI
+st.title('Iris Flower Prediction App')
+st.sidebar.header('User Input Features')
 
-# Sidebar - Data Exploration
-st.sidebar.subheader('Data Exploration')
-st.sidebar.write('Number of rows:', df.shape[0])
-st.sidebar.write('Number of columns:', df.shape[1])
-st.sidebar.dataframe(df.head())
+# User input fields
+sepal_length = st.sidebar.slider('Sepal Length', 4.3, 7.9, 5.4)
+sepal_width = st.sidebar.slider('Sepal Width', 2.0, 4.4, 3.4)
+petal_length = st.sidebar.slider('Petal Length', 1.0, 6.9, 1.3)
+petal_width = st.sidebar.slider('Petal Width', 0.1, 2.5, 0.2)
 
-# Sidebar - Model Building
-st.sidebar.subheader('Model Building')
+# Make prediction
+prediction = predict(sepal_length, sepal_width, petal_length, petal_width)
 
-# Train/test split
-train_size = split_size / 100
-X = df.drop('species', axis=1)
-y = df['species']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1 - train_size, random_state=42)
-
-# Model training
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-# Model evaluation
-st.subheader('Model Test Accuracy Score')
-st.write(accuracy_score(y_test, model.predict(X_test)))
-
-# User input for prediction
-st.sidebar.subheader('Predict')
-input_data = {}
-for feature in X.columns:
-    value = st.sidebar.slider(f'Input for {feature}', float(df[feature].min()), float(df[feature].max()), float(df[feature].mean()))
-    input_data[feature] = value
-
-# Prediction
-prediction = model.predict(pd.DataFrame(input_data, index=[0]))
-st.subheader('Prediction')
-st.write(prediction[0])
+# Display prediction
+st.write('Prediction:', prediction)
