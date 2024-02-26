@@ -68,7 +68,7 @@ def main():
     # Display prediction
     species_mapping = {0: 'setosa', 1: 'versicolor', 2: 'virginica'}
     if prediction:
-        st.write('Prediction:', species_mapping[prediction[0]])
+        st.write('Prediction:', species_mapping[prediction])
 
 if __name__ == '__main__':
     main()
